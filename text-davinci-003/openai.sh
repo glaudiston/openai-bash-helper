@@ -5,6 +5,7 @@
 # You can use this file to set it:
 source ${HOME}/.ssh/env;
 
+
 function ask_openai() {
 	text="$@";
 	text_hash=$( echo -n "${text}" | md5sum <<<"$text" | cut -d " " -f1 );
@@ -27,13 +28,12 @@ function ask_openai() {
 		"temperature": 0, 
 		"max_tokens": '"${tokens}"'
 	}' | jq > ${cache_dir}/request 
-	echo request
 	curl https://api.openai.com/v1/completions \
 		-H "Content-Type: application/json" \
 		-H "Authorization: Bearer ${OPENAI_API_KEY}" \
-		-d "@${cache_dir}/request" \ 
-		${STDOUT}> "${cache_dir}/response" \
-		${STDERR}> "${cache_dir}/curl-stderr"
+		-d "@${cache_dir}/request" \
+		> "${cache_dir}/response" \
+		2> "${cache_dir}/curl-stderr"
 }
 
 ask_openai "$@" | jq -r ".choices[].text"
