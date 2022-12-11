@@ -6,3 +6,7 @@ Just a small script I’ve written to use openai bot inside vim… seems useful�
 
 https://user-images.githubusercontent.com/8269938/206920411-596fa211-0c0c-45b0-ac05-9c938257852c.mov
 
+
+
+https://user-images.githubusercontent.com/8269938/206922889-c558fa0e-fb43-407a-a712-e8a7a977f5e4.mov
+
