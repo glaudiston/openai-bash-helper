@@ -17,7 +17,6 @@ function ask_openai() {
 	       exit 0;
 	fi;
 	mkdir -p "${cache_dir}";
-	echo $?
 
 	json_text_field="$( echo -n "${text}" | jq --raw-input --slurp )";
 	wordcount=$(echo -n "${text}" | wc -w);
@@ -28,12 +27,13 @@ function ask_openai() {
 		"temperature": 0, 
 		"max_tokens": '"${tokens}"'
 	}' | jq > ${cache_dir}/request 
+
 	curl https://api.openai.com/v1/completions \
 		-H "Content-Type: application/json" \
 		-H "Authorization: Bearer ${OPENAI_API_KEY}" \
 		-d "@${cache_dir}/request" \
-		> "${cache_dir}/response" \
-		2> "${cache_dir}/curl-stderr"
+		2> "${cache_dir}/curl-stderr" |
+		tee "${cache_dir}/response";
 }
 
 ask_openai "$@" | jq -r ".choices[].text"
