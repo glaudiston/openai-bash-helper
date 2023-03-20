@@ -1,0 +1,27 @@
+#!/bin/bash
+#
+# You need to set your API tokens as:
+# export OPENAI_API_KEY="your-token-here";
+# export WRITESONIC_API_KEY="your-token-here";
+# use `${HOME}/.ssh/env` file to set it:
+source ${HOME}/.ssh/env;
+
+BASEDIR=$(dirname $(realpath $0))
+
+source ${BASEDIR}/openai/openai.sh
+source ${BASEDIR}/chatsonic/writesonic.sh 
+function ai_chat_council() {
+
+	echo "---------------------------------------------------------";
+	{
+		ask_openai "$@" | jq -r ".choices[].text" && 
+		echo "--------------------- Above by OpenAI -------------------";
+	} &
+	{
+		ask_chatsonic "$@" | jq -r ".message"  && 
+		echo "--------------------- Above by ChatSonic ------------------";
+	} &
+	wait
+}
+
+ai_chat_council "$@"

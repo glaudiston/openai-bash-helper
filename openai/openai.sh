@@ -1,5 +1,7 @@
 #!/bin/bash
 #
+# Ref: https://openai.com/blog/introducing-chatgpt-and-whisper-apis?ref=upstract.com
+# 
 # You need to set your API token as:
 # export OPENAI_API_KEY="your-token-here";
 # You can use this file to set it:
@@ -21,6 +23,8 @@ check_response() {
 		err_message="$(echo "$err" | jq .message)"
 		echo "ERROR: ${err_type}: ${err_message}. Retrying..." >&2;
 		rm -fr "${cache_dir}"
+		grep -q "Rate limit reached" <<<"${err_message}" &&
+			return 1
 		ask_openai "${question}";
 	fi
 	echo "${input}";
@@ -59,5 +63,5 @@ function ask_openai() {
 
 }
 
-ask_openai "$@" | jq -r ".choices[].text"
+#ask_openai "$@" | jq -r ".choices[].text"
 
