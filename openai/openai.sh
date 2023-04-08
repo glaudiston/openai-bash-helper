@@ -11,19 +11,19 @@ check_response() {
 	input="$(cat)";
 	cache_dir="$1"
 	question="$2";
-	if [ "${input}" == "" ]; then
+	if [[ "${#input}" == 0 ]]; then
 		echo "ERROR: Empty response. deleting cache dir, and retry" >&2;
 		rm -fr "${cache_dir}"
 		ask_openai "${question}";
 	fi;
 
 	err=$(echo "${input}" | jq .error)
-	if [ "${err}" != "null" ] ;then
+	if [[ "${err}" != "null" ]] ;then
 		err_type="$(echo "$err" | jq .type)";
 		err_message="$(echo "$err" | jq .message)"
 		echo "ERROR: ${err_type}: ${err_message}. Retrying..." >&2;
 		rm -fr "${cache_dir}"
-		grep -q "Rate limit reached" <<<"${err_message}" &&
+		grep -qE "(Rate limit reached|insufficient_quota)" <<<"${input}" &&
 			return 1
 		ask_openai "${question}";
 	fi
@@ -45,12 +45,15 @@ function ask_openai() {
 	json_text_field="$( echo -n "${text}" | jq --raw-input --slurp )";
 	wordcount=$(echo -n "${text}" | wc -w);
 	tokens=$(( 4096 - ( wordcount +100 ) )); # we don't have an effective way to know the request tokens, it is the count after parsing and interpreted by the openai... so let's just pretend it will add 20 the input for now... 
+	# valid models
+	local model="text-davinci-003";
+	#local model="gpt-4-32k";
 	echo -n '{
-		"model": "text-davinci-003", 
-		"prompt": '"${json_text_field}"', 
+		"model": "'"${model}"'", 
+		"prompt": '"${json_text_field}"',
 		"temperature": 0, 
 		"max_tokens": '"${tokens}"'
-	}' | jq > ${cache_dir}/request 
+	}' | jq > ${cache_dir}/request
 
 	curl https://api.openai.com/v1/completions \
 		-H "Content-Type: application/json" \
